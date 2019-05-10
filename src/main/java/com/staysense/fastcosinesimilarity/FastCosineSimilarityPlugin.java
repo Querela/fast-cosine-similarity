@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 
-import com.elasticsearch.staysense.fastcosinesimilarity.Util;
+import com.staysense.fastcosinesimilarity.Util;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.BinaryDocValues;
 import org.apache.lucene.store.ByteArrayDataInput;
@@ -94,7 +94,7 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                     vector = p.get("vector");
 
                     //Determine if raw comma-delimited vector or embedding was passed
-                    if(vector != null) {
+                    if (vector != null) {
                         final ArrayList<Double> tmp = (ArrayList<Double>) vector;
                         inputVector = new double[tmp.size()];
                         for (int i = 0; i < inputVector.length; i++) {
@@ -102,14 +102,14 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                         }
                     } else {
                         final Object encodedVector = p.get("encoded_vector");
-                        if(encodedVector == null) {
+                        if (encodedVector == null) {
                             throw new IllegalArgumentException("Must have 'vector' or 'encoded_vector' as a parameter");
                         }
                         inputVector = Util.convertBase64ToArray((String) encodedVector);
                     }
 
                     //If cosine calculate the query vec norm
-                    if(cosine) {
+                    if (cosine) {
                         queryVectorNorm = 0d;
                         // compute query inputVector norm once
                         for (double v : inputVector) {
@@ -153,18 +153,17 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                                  return 0d;
                             }
 
+                            final ByteArrayDataInput docVectorBA = new ByteArrayDataInput(bytes);
 
-                            final ByteArrayDataInput docVector = new ByteArrayDataInput(bytes);
+                            docVectorBA.readVInt();
 
-                            docVector.readVInt();
-
-                            final int docVectorLength = docVector.readVInt(); // returns the number of bytes to read
+                            final int docVectorLength = docVectorBA.readVInt(); // returns the number of bytes to read
 
                             if(docVectorLength != inputVectorSize * 8) {
                                 return 0d;
                             }
 
-                            final int position = docVector.getPosition();
+                            final int position = docVectorBA.getPosition();
 
                             final DoubleBuffer doubleBuffer = ByteBuffer.wrap(bytes, position, docVectorLength).asDoubleBuffer();
 
@@ -179,18 +178,22 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
           
                                 score += docVector[i] * inputVector[i];
 
-                                if(cosine)
+                                if (cosine)
                                 {
                                   docVectorNorm += Math.pow(docVector[i], 2.0);
                                 }
                             }
 
                             //If cosine, calcluate cosine score
-                            if(cosine) {
-
+                            if (cosine) {
                                 if (docVectorNorm == 0 || queryVectorNorm == 0) return 0d;
 
                                 score =  score / (Math.sqrt(docVectorNorm) * Math.sqrt(queryVectorNorm));
+                            }
+
+                            //If negative score then to zero?
+			    if (score < 0d) {
+                                score = 0d;
                             }
 
                             return score;

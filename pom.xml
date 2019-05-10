@@ -7,7 +7,7 @@
     <name>elasticsearch-fast-cosine-similarity</name>
     <groupId>com.github.staysense</groupId>
     <artifactId>staysense-cosine-sim</artifactId>
-    <version>6.4.1</version>
+    <version>7.0.1</version>
     <description>ElasticSearch Plugin for Cosine Similarity</description>
 
     <licenses>
@@ -26,7 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- define class name for the descriptor file -->
         <elasticsearch.plugin.classname>com.staysense.fastcosinesimilarity.FastCosineSimilarityPlugin</elasticsearch.plugin.classname>
-        <elasticsearch.version>6.4.1</elasticsearch.version>
+        <elasticsearch.version>7.0.1</elasticsearch.version>
         <java.specification.version>1.8</java.specification.version>
     </properties>
 
@@ -63,8 +63,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+			<source>${java.specification.version}</source>
+			<target>${java.specification.version}</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
